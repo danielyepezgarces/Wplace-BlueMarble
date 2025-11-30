@@ -119,6 +119,15 @@ div#bm-overlay, div#bm-overlay-telemetry {
   vertical-align: middle;
 }
 
+/* User info section paragraphs */
+#bm-contain-userinfo p {
+  margin: 0;
+  padding: 0;
+  font-size: small;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
 /* Checkboxes in the automation container */
 #bm-contain-automation input[type="checkbox"] {
   vertical-align: middle;

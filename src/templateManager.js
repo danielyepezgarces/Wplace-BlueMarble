@@ -1,5 +1,5 @@
 import Template from "./Template";
-import { base64ToUint8, numberToEncoded } from "./utils";
+import { base64ToUint8, numberToEncoded, calculateEstimatedTime } from "./utils";
 
 /** Manages the template system.
  * This class handles all external requests for template modification, creation, and analysis.
@@ -62,6 +62,15 @@ export default class TemplateManager {
     this.templatesJSON = null; // All templates currently loaded (JSON)
     this.templatesShouldBeDrawn = true; // Should ALL templates be drawn to the canvas?
     this.tileProgress = new Map(); // Tracks per-tile progress stats {painted, required, wrong}
+    this.apiManager = null; // Reference to ApiManager for charge information
+  }
+
+  /** Sets the API manager reference for accessing charge information.
+   * @param {ApiManager} apiManager - The ApiManager instance
+   * @since 0.86.0
+   */
+  setApiManager(apiManager) {
+    this.apiManager = apiManager;
   }
 
   /** Retrieves the pixel art canvas.
@@ -517,9 +526,21 @@ export default class TemplateManager {
       const requiredStr = new Intl.NumberFormat().format(totalRequired);
       const wrongStr = new Intl.NumberFormat().format(totalRequired - aggPainted); // Used to be aggWrong, but that is bugged
 
-      this.overlay.handleDisplayStatus(
-        `Displaying ${templateCount} template${templateCount == 1 ? '' : 's'}.\nPainted ${paintedStr} / ${requiredStr} • Wrong ${wrongStr}`
-      );
+      // Calculate estimated time to finish
+      const remainingPixels = totalRequired - aggPainted;
+      const charges = this.apiManager?.charges;
+      const estimate = calculateEstimatedTime(remainingPixels, charges);
+      
+      // Build status message with estimate if available
+      let statusMsg = `Displaying ${templateCount} template${templateCount == 1 ? '' : 's'}.\nPainted ${paintedStr} / ${requiredStr} • Wrong ${wrongStr}`;
+      if (estimate && estimate.formatted && estimate.formatted !== 'Unknown') {
+        statusMsg += `\nEst. time: ${estimate.formatted}`;
+        if (estimate.pixelsPerHour) {
+          statusMsg += ` (${new Intl.NumberFormat().format(estimate.pixelsPerHour)}/hr)`;
+        }
+      }
+
+      this.overlay.handleDisplayStatus(statusMsg);
     } else {
       this.overlay.handleDisplayStatus(`Displaying ${templateCount} templates.`);
     }
