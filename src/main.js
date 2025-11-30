@@ -180,6 +180,7 @@ const templateManager = new TemplateManager(name, version, overlayMain); // Cons
 const apiManager = new ApiManager(templateManager); // Constructs a new ApiManager object
 
 overlayMain.setApiManager(apiManager); // Sets the API manager
+templateManager.setApiManager(apiManager); // Sets the API manager for template manager to access charge info
 
 const storageTemplates = JSON.parse(GM_getValue('bmTemplates', '{}'));
 console.log(storageTemplates);

@@ -142,6 +142,79 @@ export function selectAllCoordinateInputs(document) {
   return coords;
 }
 
+/** Formats milliseconds into a human-readable time string.
+ * @param {number} ms - The time in milliseconds
+ * @returns {string} Formatted time string (e.g., "2h 30m 15s", "45m 30s", "30s")
+ * @since 0.86.0
+ * @example
+ * console.log(formatTime(3661000)); // "1h 1m 1s"
+ * console.log(formatTime(3600000)); // "1h"
+ * console.log(formatTime(90000)); // "1m 30s"
+ */
+export function formatTime(ms) {
+  if (!ms || ms <= 0) return '0s';
+  
+  const seconds = Math.floor(ms / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+  
+  const remainingHours = hours % 24;
+  const remainingMinutes = minutes % 60;
+  const remainingSeconds = seconds % 60;
+  
+  const parts = [];
+  if (days > 0) parts.push(`${days}d`);
+  if (remainingHours > 0) parts.push(`${remainingHours}h`);
+  if (remainingMinutes > 0) parts.push(`${remainingMinutes}m`);
+  if (remainingSeconds > 0 && days === 0) parts.push(`${remainingSeconds}s`);
+  
+  return parts.length > 0 ? parts.join(' ') : '0s';
+}
+
+/** Calculates the estimated time to finish painting remaining pixels.
+ * @param {number} remainingPixels - Number of pixels left to paint
+ * @param {Object} charges - The user's charge information
+ * @param {number} charges.count - Current available charges
+ * @param {number} charges.max - Maximum charges the user can have
+ * @param {number} charges.cooldownMs - Time in ms to regenerate one charge
+ * @returns {Object} Estimation result with time, formatted string, and details
+ * @since 0.86.0
+ * @example
+ * const result = calculateEstimatedTime(1000, { count: 10, max: 100, cooldownMs: 30000 });
+ * console.log(result.formatted); // "8h 15m"
+ */
+export function calculateEstimatedTime(remainingPixels, charges) {
+  if (!remainingPixels || remainingPixels <= 0) {
+    return { timeMs: 0, formatted: 'Done!', pixelsPerHour: 0 };
+  }
+  
+  if (!charges || !charges.cooldownMs) {
+    return { timeMs: null, formatted: 'Unknown', pixelsPerHour: null };
+  }
+  
+  const currentCharges = Math.floor(charges.count || 0);
+  const cooldownMs = charges.cooldownMs;
+  
+  // Pixels that can be painted immediately with current charges
+  const immediatePixels = Math.min(currentCharges, remainingPixels);
+  const pixelsAfterImmediate = remainingPixels - immediatePixels;
+  
+  // Time for remaining pixels (each pixel after using current charges needs cooldownMs)
+  const timeMs = pixelsAfterImmediate * cooldownMs;
+  
+  // Calculate pixels per hour for reference
+  const pixelsPerHour = (3600000 / cooldownMs);
+  
+  return {
+    timeMs,
+    formatted: formatTime(timeMs),
+    pixelsPerHour: Math.round(pixelsPerHour),
+    currentCharges,
+    immediatePixels
+  };
+}
+
 /** The color palette used by wplace.live
  * @since 0.78.0
  * @examples

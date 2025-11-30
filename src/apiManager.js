@@ -18,6 +18,7 @@ export default class ApiManager {
     this.disableAll = false; // Should the entire userscript be disabled?
     this.coordsTilePixel = []; // Contains the last detected tile/pixel coordinate pair requested
     this.templateCoordsTilePixel = []; // Contains the last "enabled" template coords
+    this.charges = null; // Stores user's charge information {count, max, cooldownMs}
   }
 
   /** Determines if the spontaneously received response is something we want.
@@ -72,6 +73,15 @@ export default class ApiManager {
             ));
           }
           this.templateManager.userID = dataJSON['id'];
+          
+          // Store charge information for estimate calculations
+          if (dataJSON['charges']) {
+            this.charges = {
+              count: dataJSON['charges']['count'] || 0,
+              max: dataJSON['charges']['max'] || 0,
+              cooldownMs: dataJSON['charges']['cooldownMs'] || 30000
+            };
+          }
           
           overlay.updateInnerHTML('bm-user-name', `Username: <b>${escapeHTML(dataJSON['name'])}</b>`); // Updates the text content of the username field
           overlay.updateInnerHTML('bm-user-droplets', `Droplets: <b>${new Intl.NumberFormat().format(dataJSON['droplets'])}</b>`); // Updates the text content of the droplets field
