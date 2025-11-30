@@ -203,8 +203,9 @@ export function calculateEstimatedTime(remainingPixels, charges) {
   // Time for remaining pixels (each pixel after using current charges needs cooldownMs)
   const timeMs = pixelsAfterImmediate * cooldownMs;
   
-  // Calculate pixels per hour for reference
-  const pixelsPerHour = (3600000 / cooldownMs);
+  // Calculate pixels per hour for reference (60 min * 60 sec * 1000 ms = 1 hour in ms)
+  const millisecondsPerHour = 60 * 60 * 1000;
+  const pixelsPerHour = (millisecondsPerHour / cooldownMs);
   
   return {
     timeMs,

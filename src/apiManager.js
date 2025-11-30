@@ -7,6 +7,9 @@
 import TemplateManager from "./templateManager.js";
 import { consoleError, escapeHTML, numberToEncoded, serverTPtoDisplayTP } from "./utils.js";
 
+/** Default charge cooldown time in milliseconds (30 seconds) */
+const DEFAULT_CHARGE_COOLDOWN_MS = 30000;
+
 export default class ApiManager {
 
   /** Constructor for ApiManager class
@@ -79,7 +82,7 @@ export default class ApiManager {
             this.charges = {
               count: dataJSON['charges']['count'] || 0,
               max: dataJSON['charges']['max'] || 0,
-              cooldownMs: dataJSON['charges']['cooldownMs'] || 30000
+              cooldownMs: dataJSON['charges']['cooldownMs'] || DEFAULT_CHARGE_COOLDOWN_MS
             };
           }
           
