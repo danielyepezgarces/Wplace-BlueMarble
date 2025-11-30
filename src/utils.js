@@ -221,7 +221,7 @@ export function calculateEstimatedTime(remainingPixels, charges) {
  * @param {number} charges.count - Current available charges (can be fractional)
  * @param {number} charges.max - Maximum charges the user can have
  * @param {number} charges.cooldownMs - Time in ms to regenerate one charge
- * @returns {Object} Result with timeMs, formatted string, and current/max charges
+ * @returns {{timeMs: number|null, formatted: string, currentCharges: number, maxCharges: number}} Result with timeMs, formatted string, and current/max charges
  * @since 0.86.0
  * @example
  * const result = calculateTimeUntilFull({ count: 13.5, max: 100, cooldownMs: 30000 });

@@ -272,7 +272,7 @@ export default class ApiManager {
   }
 
   /** Starts a countdown timer that updates the charges display every second.
-   * @param {Overlay} overlay - The Overlay class instance
+   * @param {Overlay} overlay - The Overlay class instance for updating UI elements
    * @since 0.86.0
    */
   #startChargeCountdown(overlay) {
@@ -286,25 +286,32 @@ export default class ApiManager {
     const initialCharges = this.charges?.count || 0;
     const maxCharges = this.charges?.max || 0;
     const cooldownMs = this.charges?.cooldownMs || DEFAULT_CHARGE_COOLDOWN_MS;
+    let lastDisplayedCharges = Math.floor(initialCharges); // Track last displayed value to avoid unnecessary updates
     
     // Update every second
     this.chargeCountdownInterval = setInterval(() => {
       const elapsedMs = Date.now() - startTime;
       const chargesGained = elapsedMs / cooldownMs;
-      const currentCharges = Math.min(initialCharges + chargesGained, maxCharges);
+      const updatedCharges = Math.min(initialCharges + chargesGained, maxCharges);
       
       // Update the stored charges count
       if (this.charges) {
-        this.charges.count = currentCharges;
+        this.charges.count = updatedCharges;
       }
       
-      const chargeInfo = calculateTimeUntilFull(this.charges);
-      const chargesStr = `<b>${new Intl.NumberFormat().format(chargeInfo.currentCharges)}</b> / <b>${new Intl.NumberFormat().format(chargeInfo.maxCharges)}</b>`;
-      const timeStr = chargeInfo.formatted === 'Full!' ? '<b>Full!</b>' : `Full in <b>${chargeInfo.formatted}</b>`;
-      overlay.updateInnerHTML('bm-user-charges', `Charges: ${chargesStr} • ${timeStr}`);
+      // Only update DOM if the displayed value changed
+      const displayedCharges = Math.floor(updatedCharges);
+      if (displayedCharges !== lastDisplayedCharges || updatedCharges >= maxCharges) {
+        lastDisplayedCharges = displayedCharges;
+        
+        const chargeInfo = calculateTimeUntilFull(this.charges);
+        const chargesStr = `<b>${new Intl.NumberFormat().format(chargeInfo.currentCharges)}</b> / <b>${new Intl.NumberFormat().format(chargeInfo.maxCharges)}</b>`;
+        const timeStr = chargeInfo.formatted === 'Full!' ? '<b>Full!</b>' : `Full in <b>${chargeInfo.formatted}</b>`;
+        overlay.updateInnerHTML('bm-user-charges', `Charges: ${chargesStr} • ${timeStr}`);
+      }
       
       // Stop the timer when full
-      if (currentCharges >= maxCharges) {
+      if (updatedCharges >= maxCharges) {
         clearInterval(this.chargeCountdownInterval);
         this.chargeCountdownInterval = null;
       }
