@@ -216,6 +216,48 @@ export function calculateEstimatedTime(remainingPixels, charges) {
   };
 }
 
+/** Calculates the time until charges are full.
+ * @param {Object} charges - The user's charge information
+ * @param {number} charges.count - Current available charges (can be fractional)
+ * @param {number} charges.max - Maximum charges the user can have
+ * @param {number} charges.cooldownMs - Time in ms to regenerate one charge
+ * @returns {Object} Result with timeMs, formatted string, and current/max charges
+ * @since 0.86.0
+ * @example
+ * const result = calculateTimeUntilFull({ count: 13.5, max: 100, cooldownMs: 30000 });
+ * console.log(result.formatted); // "43m 15s"
+ */
+export function calculateTimeUntilFull(charges) {
+  if (!charges || !charges.cooldownMs || !charges.max) {
+    return { timeMs: null, formatted: 'Unknown', currentCharges: 0, maxCharges: 0 };
+  }
+  
+  const currentCharges = charges.count || 0;
+  const maxCharges = charges.max || 0;
+  const cooldownMs = charges.cooldownMs;
+  
+  // If already full or over max
+  if (currentCharges >= maxCharges) {
+    return { 
+      timeMs: 0, 
+      formatted: 'Full!', 
+      currentCharges: Math.floor(currentCharges), 
+      maxCharges 
+    };
+  }
+  
+  // Calculate charges needed and time
+  const chargesNeeded = maxCharges - currentCharges;
+  const timeMs = chargesNeeded * cooldownMs;
+  
+  return {
+    timeMs,
+    formatted: formatTime(timeMs),
+    currentCharges: Math.floor(currentCharges),
+    maxCharges
+  };
+}
+
 /** The color palette used by wplace.live
  * @since 0.78.0
  * @examples
